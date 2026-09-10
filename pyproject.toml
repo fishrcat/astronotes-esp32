@@ -1,0 +1,9 @@
+[project]
+name = "astronotes-esp32"
+version = "0.1.0"
+description = "ESP32 firmware for Astronotes audio controller"
+requires-python = ">=3.11"
+dependencies = [
+    "pip",
+    "platformio",
+]
