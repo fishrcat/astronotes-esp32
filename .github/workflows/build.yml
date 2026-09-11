@@ -1,0 +1,26 @@
+name: Build firmware
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.platformio
+            .pio
+          key: pio-${{ runner.os }}-${{ hashFiles('platformio.ini', 'uv.lock') }}
+      - name: Build firmware
+        run: make build
+      - name: Upload firmware artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: astronotes-esp32s3_reversetft
+          path: .pio/build/feather
+          if-no-files-found: error
