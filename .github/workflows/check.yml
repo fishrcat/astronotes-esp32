@@ -1,10 +1,10 @@
-name: Lint
+name: Run checks and test suite
 
 on:
   pull_request:
 
 jobs:
-  lint:
+  check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -15,4 +15,4 @@ jobs:
             ~/.platformio
             .pio
           key: pio-${{ runner.os }}-${{ hashFiles('platformio.ini', 'uv.lock') }}
-      - run: make lint
+      - run: make check

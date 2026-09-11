@@ -1,4 +1,4 @@
-.PHONY: build upload clean monitor lint
+.PHONY: build upload clean monitor check lint
 
 PIO := uv run pio
 
@@ -14,5 +14,5 @@ clean:
 monitor:
 	$(PIO) device monitor
 
-lint:
+check:
 	$(PIO) check --skip-packages --src-filters="+<src/>"

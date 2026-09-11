@@ -1,4 +1,4 @@
-name: Build
+name: Build firmware
 
 on:
   push:
@@ -16,4 +16,11 @@ jobs:
             ~/.platformio
             .pio
           key: pio-${{ runner.os }}-${{ hashFiles('platformio.ini', 'uv.lock') }}
-      - run: make build
+      - name: Build firmware
+        run: make build
+      - name: Upload firmware artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: astronotes-esp32s3_reversetft
+          path: .pio/build/feather
+          if-no-files-found: error
