@@ -12,4 +12,6 @@ void onDown(Callback cb);
 void onUp(Callback cb);
 void onHold(Callback cb);
 
+unsigned long lastActivityMs();
+
 }  // namespace Buttons

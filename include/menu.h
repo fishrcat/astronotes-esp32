@@ -5,6 +5,7 @@ class Adafruit_GFX;
 namespace Menu {
 
 void begin(Adafruit_GFX &display);
+void tick();
 
 void pressUp();
 void pressDown();

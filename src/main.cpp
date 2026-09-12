@@ -4,8 +4,10 @@
 #include <ESPmDNS.h>
 #include <WiFi.h>
 
+#include "battery.h"
 #include "buttons.h"
 #include "menu.h"
+#include "power.h"
 
 Adafruit_ST7789 tft(TFT_CS, TFT_DC, TFT_RST);
 
@@ -30,7 +32,13 @@ void setup() {
   Buttons::onUp(Menu::pressUp);
   Buttons::onHold(Menu::goHome);
 
+  Battery::begin();
   Menu::begin(tft);
+  Power::begin();
 }
 
-void loop() { Buttons::tick(); }
+void loop() {
+  Buttons::tick();
+  Menu::tick();
+  Power::tick();
+}
