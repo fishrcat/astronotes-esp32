@@ -1,19 +1,15 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_ST7789.h>
 #include <ESPUI.h>
-#include <ESPmDNS.h> 
+#include <ESPmDNS.h>
 #include <WiFi.h>
 
-Adafruit_ST7789 tft(TFT_CS, TFT_DC, TFT_RST);
+#include "battery.h"
+#include "buttons.h"
+#include "menu.h"
+#include "power.h"
 
-// Update the text on the screen
-void onText(Control *sender, int type) {
-  if (type != T_VALUE)
-    return;
-  tft.fillScreen(ST77XX_BLACK);
-  tft.setCursor(0, 0);
-  tft.print(sender->value);
-}
+Adafruit_ST7789 tft(TFT_CS, TFT_DC, TFT_RST);
 
 void setup() {
   pinMode(TFT_I2C_POWER, OUTPUT);
@@ -24,17 +20,25 @@ void setup() {
 
   tft.init(135, 240);
   tft.setRotation(1);
-  tft.fillScreen(ST77XX_BLACK);
-  tft.setTextColor(ST77XX_WHITE);
-  tft.setTextSize(2);
-  tft.setTextWrap(true);
-  tft.print("hello world");
 
   WiFi.softAP("Astronotes");
   MDNS.begin("astronotes");
-  ESPUI.text("Text", &onText, ControlColor::Peterriver, "hello world");
   ESPUI.begin("Astronotes");
   MDNS.addService("http", "tcp", 80);
+
+  Buttons::begin();
+  Buttons::onEnter(Menu::pressOk);
+  Buttons::onDown(Menu::pressDown);
+  Buttons::onUp(Menu::pressUp);
+  Buttons::onHold(Menu::goHome);
+
+  Battery::begin();
+  Menu::begin(tft);
+  Power::begin();
 }
 
-void loop() {}
+void loop() {
+  Buttons::tick();
+  Menu::tick();
+  Power::tick();
+}
