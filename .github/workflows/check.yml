@@ -16,3 +16,4 @@ jobs:
             .pio
           key: pio-${{ runner.os }}-${{ hashFiles('platformio.ini', 'uv.lock') }}
       - run: make check
+      - run: make test

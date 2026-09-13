@@ -52,5 +52,6 @@ void onUp(Callback cb) { clickCallbacks[kUp] = cb; }
 void onHold(Callback cb) { holdCallback = cb; }
 
 unsigned long lastActivityMs() { return lastActivity; }
+void recordActivity() { lastActivity = millis(); }
 
 }  // namespace Buttons
