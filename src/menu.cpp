@@ -1,19 +1,15 @@
 #include "menu.h"
 
 #include <GEM_adafruit_gfx.h>
-#include <array>
-#include <cstdio>
 
-#include "battery.h"
 #include "config.h"
+#include "log.h"
 
 namespace Menu {
 namespace {
 
 GEM_adafruit_gfx *menu = nullptr;
 Adafruit_GFX *screen = nullptr;
-unsigned long lastDrawMs = 0;
-float cachedBatteryPercent = 0.0F;
 
 GEMPage mainMenuPage("Astronotes");
 GEMPage logPage("Log");
@@ -29,22 +25,27 @@ GEMItem analyzeItem("Analyze", analyzePage);
 GEMItem jamItem("Jam", jamPage);
 GEMItem settingsItem("Settings", settingsPage);
 
-void refreshBatteryPercent() {
-  if (Battery::available())
-    cachedBatteryPercent = Battery::percent();
+void drawOverlay() {
+  if (menu->getCurrentMenuPage() == &logPage)
+    Log::draw(*screen);
 }
 
-void drawBatteryIndicator() {
-  if (!Battery::available())
-    return;
-  std::array<char, 8> text{};
-  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg, hicpp-vararg)
-  (void)snprintf(text.data(), text.size(), "%3d%%", static_cast<int>(cachedBatteryPercent));
-  screen->setTextSize(1);
-  screen->setTextColor(Config::kForegroundColor, Config::kBackgroundColor);
-  screen->setCursor(screen->width() - 30, 2);
-  screen->print(text.data());
-  screen->setTextSize(Config::kMenuTextSize);
+struct PageEnter {
+  GEMPage *page;
+  void (*onEnter)(Adafruit_GFX &);
+};
+
+PageEnter pageEnters[] = {
+    {&logPage, Log::onEnter},
+};
+
+void enterPage(GEMPage *page) {
+  for (auto &pe : pageEnters) {
+    if (pe.page == page) {
+      pe.onEnter(*screen);
+      return;
+    }
+  }
 }
 
 }  // namespace
@@ -57,7 +58,7 @@ void begin(Adafruit_GFX &display) {
   menu->setTextSize(Config::kMenuTextSize);
   menu->setForegroundColor(Config::kForegroundColor);
   menu->setBackgroundColor(Config::kBackgroundColor);
-  menu->setDrawMenuCallback(drawBatteryIndicator);
+  menu->setDrawMenuCallback(drawOverlay);
 
   mainMenuPage.addMenuItem(logItem);
   mainMenuPage.addMenuItem(tunerItem);
@@ -65,22 +66,20 @@ void begin(Adafruit_GFX &display) {
   mainMenuPage.addMenuItem(jamItem);
   mainMenuPage.addMenuItem(settingsItem);
 
-  refreshBatteryPercent();
   menu->init();
   menu->setMenuPageCurrent(mainMenuPage);
   menu->drawMenu();
 }
 
 void tick() {
-  unsigned long now = millis();
-  if (now - lastDrawMs >= Config::kBatteryRefreshMs) {
-    lastDrawMs = now;
-    refreshBatteryPercent();
-    drawBatteryIndicator();
-  }
+  drawOverlay();
 }
 
 void pressUp() {
+  if (menu->getCurrentMenuPage() == &logPage) {
+    Log::toggleTimer();
+    return;
+  }
   if (menu->readyForKey())
     menu->registerKeyPress(GEM_KEY_UP);
 }
@@ -91,13 +90,19 @@ void pressDown() {
 }
 
 void pressOk() {
-  if (menu->readyForKey())
-    menu->registerKeyPress(GEM_KEY_OK);
+  if (!menu->readyForKey())
+    return;
+  GEMPage *before = menu->getCurrentMenuPage();
+  menu->registerKeyPress(GEM_KEY_OK);
+  GEMPage *after = menu->getCurrentMenuPage();
+  if (after != before)
+    enterPage(after);
 }
 
 void goHome() {
   menu->setMenuPageCurrent(mainMenuPage);
   menu->drawMenu();
+  enterPage(&mainMenuPage);
 }
 
 }  // namespace Menu

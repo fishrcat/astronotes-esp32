@@ -13,5 +13,6 @@ void onUp(Callback cb);
 void onHold(Callback cb);
 
 unsigned long lastActivityMs();
+void recordActivity();
 
 }  // namespace Buttons
